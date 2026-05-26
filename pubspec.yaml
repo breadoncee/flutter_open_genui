@@ -22,9 +22,11 @@ dev_dependencies:
   melos: ^7.0.0
 
 # Melos 7 reads its config from here when the root uses a pub workspace.
-# Run scripts with `fvm exec melos run <name>` (puts the pinned SDK on PATH).
+# `sdkPath` is intentionally NOT set: locally we invoke `fvm exec melos ...`
+# which puts the pinned SDK on PATH; on CI, `subosito/flutter-action` reads
+# `.fvmrc` and puts the same version on PATH. Either way, melos resolves
+# `dart` / `flutter` from PATH.
 melos:
-  sdkPath: .fvm/flutter_sdk
   scripts:
     analyze:
       description: Statically analyze every package.
