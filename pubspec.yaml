@@ -12,6 +12,9 @@ environment:
 workspace:
   - packages/flutter_open_genui
   - packages/flutter_open_genui_openai
+  - packages/flutter_open_genui_openrouter
+  - packages/flutter_open_genui_ollama
+  - packages/flutter_open_genui_anthropic
   - example
 
 dev_dependencies:
