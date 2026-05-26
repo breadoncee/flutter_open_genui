@@ -1,0 +1,17 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
+  errors:
+    # Treat missing docs as a warning so CI stays green pre-1.0; tighten before publish.
+    public_member_api_docs: ignore
+
+linter:
+  rules:
+    - prefer_single_quotes
+    - require_trailing_commas
+    - unawaited_futures
+    - avoid_print

@@ -1,0 +1,36 @@
+# Workspace root. Not published — it ties the member packages together so
+# `dart pub get` resolves them with a single shared lockfile (Dart pub
+# workspaces), and holds the melos task definitions.
+name: flutter_open_genui_workspace
+publish_to: none
+
+environment:
+  sdk: ^3.10.0
+
+# Member packages. Each lists `resolution: workspace`. Add provider packages and
+# the example app here as they are created.
+workspace:
+  - packages/flutter_open_genui
+  - packages/flutter_open_genui_openai
+  - example
+
+dev_dependencies:
+  flutter_lints: ^5.0.0
+  melos: ^7.0.0
+
+# Melos 7 reads its config from here when the root uses a pub workspace.
+# Run scripts with `fvm exec melos run <name>` (puts the pinned SDK on PATH).
+melos:
+  sdkPath: .fvm/flutter_sdk
+  scripts:
+    analyze:
+      description: Statically analyze every package.
+      exec: dart analyze --fatal-infos --fatal-warnings .
+    format:
+      description: Fail if any file is not formatted.
+      exec: dart format --set-exit-if-changed .
+    test:
+      description: Run tests in packages that have a test/ dir.
+      exec: flutter test
+      packageFilters:
+        dirExists: test

@@ -1,0 +1,24 @@
+# FVM — pin the version via .fvmrc (committed), ignore the local SDK cache/symlink
+.fvm/
+
+# Dart / Flutter
+.dart_tool/
+.packages
+build/
+coverage/
+doc/api/
+
+# Libraries should not commit lockfiles; the example app's is regenerated too.
+pubspec.lock
+
+# Generated
+*.g.dart.bak
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# IDE / OS
+.idea/
+*.iml
+.vscode/
+.DS_Store
+*.log
