@@ -1,6 +1,6 @@
 # flutter_open_genui
 
-Core of [flutter_open_genui](https://github.com/devid/flutter_open_genui) —
+Core of [flutter_open_genui](https://github.com/breadoncee/flutter_open_genui) —
 **bring your own LLM to [Flutter GenUI](https://docs.flutter.dev/ai/genui)**.
 
 This package provides the shared pieces every provider adapter builds on:
@@ -16,6 +16,6 @@ This package provides the shared pieces every provider adapter builds on:
 Install a provider package (e.g.
 [`flutter_open_genui_openai`](https://pub.dev/packages/flutter_open_genui_openai))
 to get a concrete adapter. See the
-[repo README](https://github.com/devid/flutter_open_genui) for full usage.
+[repo README](https://github.com/breadoncee/flutter_open_genui) for full usage.
 
 Built against `genui` 0.9.0. BSD-3-Clause.

@@ -1,7 +1,7 @@
 # flutter_open_genui_ollama
 
 Local-LLM adapter for
-[flutter_open_genui](https://github.com/devid/flutter_open_genui).
+[flutter_open_genui](https://github.com/breadoncee/flutter_open_genui).
 
 Talks to a local [Ollama](https://ollama.com) server via its OpenAI-compatible
 `/v1` endpoint. No API key required — perfect for offline development and
@@ -25,5 +25,5 @@ final adapter = OllamaGenUiAdapter(
   the *prompt-first* path (model emits A2UI JSON in fenced blocks), which the
   shared healer in `flutter_open_genui` repairs and forwards.
 
-See the [repo README](https://github.com/devid/flutter_open_genui) for the
+See the [repo README](https://github.com/breadoncee/flutter_open_genui) for the
 full setup. Built against `genui` 0.9.0. BSD-3-Clause.

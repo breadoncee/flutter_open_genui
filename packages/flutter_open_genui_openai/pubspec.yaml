@@ -3,8 +3,8 @@ description: >-
   OpenAI (and OpenAI-compatible) adapter for flutter_open_genui — drive Flutter
   GenUI A2UI surfaces with the OpenAI Chat Completions API.
 version: 0.0.1
-repository: https://github.com/devid/flutter_open_genui
-issue_tracker: https://github.com/devid/flutter_open_genui/issues
+repository: https://github.com/breadoncee/flutter_open_genui
+issue_tracker: https://github.com/breadoncee/flutter_open_genui/issues
 
 topics:
   - ai

@@ -98,7 +98,7 @@ class _ChatPageState extends State<ChatPage> {
         apiKey: _openRouterKey,
         model: provider.defaultModel,
         systemPrompt: systemPrompt,
-        referer: 'https://github.com/devid/flutter_open_genui',
+        referer: 'https://github.com/breadoncee/flutter_open_genui',
         title: 'flutter_open_genui example',
       ),
       Provider.anthropic => AnthropicGenUiAdapter(

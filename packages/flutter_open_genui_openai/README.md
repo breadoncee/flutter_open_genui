@@ -1,7 +1,7 @@
 # flutter_open_genui_openai
 
 OpenAI adapter for
-[flutter_open_genui](https://github.com/devid/flutter_open_genui) — drive
+[flutter_open_genui](https://github.com/breadoncee/flutter_open_genui) — drive
 [Flutter GenUI](https://docs.flutter.dev/ai/genui) A2UI surfaces with the OpenAI
 Chat Completions API.
 
@@ -31,6 +31,6 @@ backend proxy.
 
 > Security: the default path calls OpenAI directly from the app, so the key lives
 > on-device. For production, route through a proxy via `baseUrl`. See the
-> [repo README](https://github.com/devid/flutter_open_genui).
+> [repo README](https://github.com/breadoncee/flutter_open_genui).
 
 Built against `genui` 0.9.0. BSD-3-Clause.

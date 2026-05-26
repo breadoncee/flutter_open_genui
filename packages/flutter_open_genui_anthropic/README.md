@@ -1,7 +1,7 @@
 # flutter_open_genui_anthropic
 
 Anthropic (Claude) adapter for
-[flutter_open_genui](https://github.com/devid/flutter_open_genui).
+[flutter_open_genui](https://github.com/breadoncee/flutter_open_genui).
 
 Talks to the
 [Messages API](https://docs.anthropic.com/en/api/messages) directly over `dio`
@@ -20,5 +20,5 @@ final adapter = AnthropicGenUiAdapter(
 `max_tokens` defaults to 4096 (the Messages API requires it). Override via the
 named constructor argument.
 
-See the [repo README](https://github.com/devid/flutter_open_genui) for the full
+See the [repo README](https://github.com/breadoncee/flutter_open_genui) for the full
 setup. Built against `genui` 0.9.0. BSD-3-Clause.

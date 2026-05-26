@@ -1,7 +1,7 @@
 # flutter_open_genui_openrouter
 
 OpenRouter adapter for
-[flutter_open_genui](https://github.com/devid/flutter_open_genui).
+[flutter_open_genui](https://github.com/breadoncee/flutter_open_genui).
 
 [OpenRouter](https://openrouter.ai) exposes dozens of models behind one
 OpenAI-compatible API; this adapter is a thin wrapper over the reusable
@@ -20,5 +20,5 @@ final adapter = OpenRouterGenUiAdapter(
 );
 ```
 
-See the [repo README](https://github.com/devid/flutter_open_genui) for the
+See the [repo README](https://github.com/breadoncee/flutter_open_genui) for the
 full setup. Built against `genui` 0.9.0. BSD-3-Clause.
