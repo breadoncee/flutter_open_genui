@@ -46,8 +46,9 @@ new provider usually only implements `streamCompletion`.
    envelope (URL, headers, body) and that the streaming format parses into text
    chunks.
 
-Wanted providers: Mistral, Groq, AWS Bedrock, Gemini-direct (non-Firebase),
-Cohere.
+Built-in: OpenAI, OpenRouter, Anthropic, Ollama.
+Wanted next: Mistral, Groq, AWS Bedrock, Gemini-direct (non-Firebase), Cohere,
+Together, DeepSeek, Cerebras.
 
 ## Style
 

@@ -28,9 +28,9 @@ instead of silently falling back to chat text.
 | --- | --- |
 | `flutter_open_genui` | Core: `GenUiAdapter` base class, JSON healing, prompt/logging helpers |
 | `flutter_open_genui_openai` | `OpenAiGenUiAdapter` (+ reusable OpenAI-compatible base) |
-| `flutter_open_genui_openrouter` | _planned_ — reuses the OpenAI path |
-| `flutter_open_genui_anthropic` | _planned_ — Claude Messages API |
-| `flutter_open_genui_ollama` | _planned_ — local, no API key |
+| `flutter_open_genui_openrouter` | `OpenRouterGenUiAdapter` — many models, one Bearer key |
+| `flutter_open_genui_anthropic` | `AnthropicGenUiAdapter` — Claude Messages API |
+| `flutter_open_genui_ollama` | `OllamaGenUiAdapter` — local, no API key |
 
 Each provider is an **optional** dependency — installing the OpenAI adapter does
 not pull in any other provider's code.
@@ -71,11 +71,13 @@ final conversation = Conversation(
 await conversation.sendRequest(ChatMessage.user('Plan me a trip'));
 ```
 
-Switching providers is a one-line change (planned adapters):
+Switching providers is a one-line change:
 
 ```dart
 final adapter = AnthropicGenUiAdapter(apiKey: key, model: 'claude-sonnet-4-6', systemPrompt: prompt);
-// or, no API key needed:
+// or via OpenRouter (any of dozens of models):
+final adapter = OpenRouterGenUiAdapter(apiKey: key, model: 'anthropic/claude-sonnet-4-6', systemPrompt: prompt);
+// or no API key — local:
 final adapter = OllamaGenUiAdapter(model: 'llama3.1', systemPrompt: prompt);
 ```
 
