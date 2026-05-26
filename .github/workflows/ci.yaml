@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  analyze-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Read the pinned Flutter version from .fvmrc (single source of truth).
+      - id: fvm
+        uses: kuhnroyal/flutter-fvm-config-action@v3
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.fvm.outputs.FLUTTER_VERSION }}
+          channel: ${{ steps.fvm.outputs.FLUTTER_CHANNEL }}
+
+      - name: Activate melos
+        run: dart pub global activate melos
+
+      - name: Bootstrap workspace
+        run: melos bootstrap
+
+      - name: Verify formatting
+        run: melos run format --no-select
+
+      - name: Analyze
+        run: melos run analyze --no-select
+
+      - name: Test
+        run: melos run test --no-select
