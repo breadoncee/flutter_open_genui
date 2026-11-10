@@ -24,7 +24,7 @@ dependencies:
     sdk: flutter
   flutter_open_genui: ^0.0.1
   flutter_open_genui_openai: ^0.0.1
-  genui: ^0.9.0
+  a2ui_core: ^0.6.0
   dio: ^5.0.0
 
 dev_dependencies:

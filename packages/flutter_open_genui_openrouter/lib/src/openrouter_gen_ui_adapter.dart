@@ -2,6 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:a2ui_core/a2ui_core.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_open_genui/flutter_open_genui.dart';
 import 'package:flutter_open_genui_openai/flutter_open_genui_openai.dart';
@@ -16,6 +17,7 @@ import 'package:flutter_open_genui_openai/flutter_open_genui_openai.dart';
 /// final adapter = OpenRouterGenUiAdapter(
 ///   apiKey: myKey,
 ///   model: 'anthropic/claude-sonnet-4-6',
+///   catalog: catalog,
 ///   systemPrompt: GenUiPrompt.fromCatalog(catalog),
 ///   referer: 'https://myapp.example.com', // optional
 ///   title: 'MyApp',                       // optional
@@ -29,6 +31,7 @@ class OpenRouterGenUiAdapter extends OpenAiCompatibleAdapter {
   OpenRouterGenUiAdapter({
     required String apiKey,
     required String model,
+    required CatalogApi catalog,
     required String systemPrompt,
     String? baseUrl,
     String? referer,
@@ -42,6 +45,7 @@ class OpenRouterGenUiAdapter extends OpenAiCompatibleAdapter {
          defaultBaseUrl: 'https://openrouter.ai/api/v1',
          config: GenUiAdapterConfig(
            model: model,
+           catalog: catalog,
            systemPrompt: systemPrompt,
            apiKey: apiKey,
            baseUrl: baseUrl,

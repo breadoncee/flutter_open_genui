@@ -6,7 +6,6 @@ import 'dart:convert';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_open_genui/flutter_open_genui.dart';
-import 'package:genui/genui.dart' show ChatMessage, ChatMessageRole;
 
 /// Adapter for any service that speaks the OpenAI Chat Completions API.
 ///
@@ -90,8 +89,8 @@ class OpenAiCompatibleAdapter extends GenUiAdapter {
   };
 
   /// Uses the message's text; falls back to encoding non-text parts (e.g. a UI
-  /// interaction or validation error sent back by the controller) as JSON so
-  /// the model still sees them.
+  /// action or error from `GenUiAdapter.sendInteraction`) as JSON so the model
+  /// still sees them.
   static String _content(ChatMessage message) => message.text.isNotEmpty
       ? message.text
       : message.parts.map((p) => jsonEncode(p.toJson())).join();

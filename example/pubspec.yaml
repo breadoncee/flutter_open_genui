@@ -12,12 +12,15 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
-  genui: ^0.9.0
+  a2ui_core: ^0.6.0
+  a2ui_flutter: ^0.2.0
+  flutter_markdown_plus: ^1.0.5
   flutter_open_genui: ^0.0.1
   flutter_open_genui_openai: ^0.0.1
   flutter_open_genui_openrouter: ^0.0.1
   flutter_open_genui_anthropic: ^0.0.1
   flutter_open_genui_ollama: ^0.0.1
+  url_launcher: ^6.3.2
 
 dev_dependencies:
   flutter_test:

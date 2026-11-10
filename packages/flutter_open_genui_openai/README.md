@@ -6,23 +6,31 @@ OpenAI adapter for
 Chat Completions API.
 
 ```dart
-import 'package:genui/genui.dart';
+import 'package:a2ui_core/a2ui_core.dart';
+import 'package:a2ui_flutter/a2ui_flutter.dart';
+import 'package:a2ui_flutter/v0_9/basic_catalog.dart' as v0_9;
 import 'package:flutter_open_genui/flutter_open_genui.dart';
 import 'package:flutter_open_genui_openai/flutter_open_genui_openai.dart';
 
-final catalog = BasicCatalogItems.asCatalog();
+final catalog = v0_9.basicCatalog();
 
 final adapter = OpenAiGenUiAdapter(
   apiKey: myKey,
   model: 'gpt-5.4',
+  catalog: catalog,
   systemPrompt: GenUiPrompt.fromCatalog(catalog),
 );
 
-final conversation = Conversation(
-  controller: SurfaceController(catalogs: [catalog]),
-  transport: adapter.transport,
+final processor = MessageProcessor<ComponentImplementation>(
+  catalogs: [catalog],
+  validationConfig: ValidationConfig.relaxed,
+  reportErrorsOnly: true,
 );
-await conversation.sendRequest(ChatMessage.user('Plan me a trip'));
+adapter.incomingMessages.listen(
+  (message) =>
+      processor.processMessages(AgentToRendererMessagePayload.of(message)),
+);
+await adapter.sendRequest(ChatMessage.user('Plan me a trip'));
 ```
 
 `OpenAiCompatibleAdapter` (also exported) is the reusable base for any
@@ -33,4 +41,4 @@ backend proxy.
 > on-device. For production, route through a proxy via `baseUrl`. See the
 > [repo README](https://github.com/breadoncee/flutter_open_genui).
 
-Built against `genui` 0.9.0. BSD-3-Clause.
+Built against `a2ui_core` 0.6.0 and `a2ui_agent` 0.2.0. BSD-3-Clause.

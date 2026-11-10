@@ -5,11 +5,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:a2ui_core/a2ui_core.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_open_genui/flutter_open_genui.dart';
 import 'package:flutter_open_genui_openrouter/flutter_open_genui_openrouter.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:genui/genui.dart' show ChatMessage;
 
 class _FakeSseAdapter implements HttpClientAdapter {
   _FakeSseAdapter(this.sseLines);
@@ -45,6 +45,7 @@ void main() {
       final adapter = OpenRouterGenUiAdapter(
         apiKey: 'or-key',
         model: 'anthropic/claude-sonnet-4-6',
+        catalog: BasicCatalog.v0_9(),
         systemPrompt: 'SYSTEM',
         dio: Dio()..httpClientAdapter = fake,
       );
@@ -73,6 +74,7 @@ void main() {
       final adapter = OpenRouterGenUiAdapter(
         apiKey: 'k',
         model: 'm',
+        catalog: BasicCatalog.v0_9(),
         systemPrompt: 's',
         referer: 'https://app.example.com',
         title: 'MyApp',

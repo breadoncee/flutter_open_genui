@@ -10,6 +10,7 @@ keeping data on-device.
 ```dart
 final adapter = OllamaGenUiAdapter(
   model: 'llama3.1',
+  catalog: catalog,
   systemPrompt: GenUiPrompt.fromCatalog(catalog),
   // baseUrl: 'http://ollama.local:11434/v1', // optional override
 );
@@ -19,11 +20,12 @@ final adapter = OllamaGenUiAdapter(
 
 - **Prompt size:** the A2UI system prompt is large (commonly 3,000–5,000+
   tokens). Small/quantized models with tight context windows may truncate.
-  Use a model with a generous context, or trim the catalog and
-  `systemPromptFragments` when calling `PromptBuilder.chat`.
+  Use a model with a generous context, or trim the catalog and the
+  `fragments` you pass to `GenUiPrompt.fromCatalog`.
 - **Tool calling:** support varies wildly by model. This adapter sticks to
-  the *prompt-first* path (model emits A2UI JSON in fenced blocks), which the
-  shared healer in `flutter_open_genui` repairs and forwards.
+  the *prompt-first* path (model emits A2UI JSON in `<a2ui-json>` blocks),
+  which the shared healer in `flutter_open_genui` repairs and forwards.
 
 See the [repo README](https://github.com/breadoncee/flutter_open_genui) for the
-full setup. Built against `genui` 0.9.0. BSD-3-Clause.
+full setup. Built against `a2ui_core` 0.6.0 and `a2ui_agent` 0.2.0.
+BSD-3-Clause.

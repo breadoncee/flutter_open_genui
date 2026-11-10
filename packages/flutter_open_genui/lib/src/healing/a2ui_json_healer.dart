@@ -7,16 +7,17 @@ import 'dart:async';
 import '../logging.dart';
 import 'json_repair.dart';
 
-/// A [StreamTransformer] that sits between a provider's raw token stream and the
-/// official `A2uiTransportAdapter.addChunk`, repairing malformed JSON blocks so
-/// the downstream parser can render them instead of dropping them to chat text.
+/// A [StreamTransformer] that sits between a provider's raw token stream and
+/// the `a2ui_agent` response stream, repairing malformed A2UI blocks so the
+/// downstream parser can render them instead of rejecting them.
 ///
-/// It detects complete blocks incrementally (Markdown ```` ```json ```` fences
-/// and balanced top-level `{...}` objects), so the happy path streams with no
-/// added latency. A block that already parses is forwarded unchanged; a broken
-/// block is run through [JsonRepair]; an unrecoverable block is forwarded as-is
-/// and logged (graceful degradation — never crash the surface). A truncated
-/// trailing block (e.g. a `maxTokens` cutoff) is repaired on stream close.
+/// It detects complete `<a2ui-json>` … `</a2ui-json>` blocks incrementally,
+/// the format `GenUiPrompt.fromCatalog` asks for. Text outside blocks streams
+/// through with no added latency. A block whose JSON already parses is
+/// forwarded unchanged; a broken block is run through [JsonRepair]; an
+/// unrecoverable block is forwarded as-is and logged (graceful degradation —
+/// never crash the surface). A truncated trailing block (e.g. a `maxTokens`
+/// cutoff) is repaired and closed on stream close.
 class A2uiJsonHealer extends StreamTransformerBase<String, String> {
   /// Creates a healer.
   ///
@@ -62,7 +63,13 @@ class _HealerState {
   final void Function(String original)? _onDrop;
   String _buffer = '';
 
-  static final RegExp _fence = RegExp(r'```(?:json)?\s*([\s\S]*?)\s*```');
+  static const String _openTagText = '<a2ui-json>';
+  static const String _closeTagText = '</a2ui-json>';
+  static final RegExp _openTag = RegExp(_openTagText, caseSensitive: false);
+  static final RegExp _closeTag = RegExp(
+    r'</a2ui-json\s*>',
+    caseSensitive: false,
+  );
 
   void onData(String chunk) {
     _buffer += chunk;
@@ -73,50 +80,38 @@ class _HealerState {
 
   void _process({required bool done}) {
     while (_buffer.isNotEmpty) {
-      final fence = _fence.firstMatch(_buffer);
-      if (fence != null) {
-        _emitProse(_buffer.substring(0, fence.start));
-        _emitBlock(fence.group(1) ?? '', fence.group(0) ?? '');
-        _buffer = _buffer.substring(fence.end);
-        continue;
-      }
-
-      if (_buffer.startsWith('{')) {
-        final end = JsonRepair.balancedEnd(_buffer);
-        if (end != -1) {
-          final block = _buffer.substring(0, end);
-          _emitBlock(block, block);
-          _buffer = _buffer.substring(end);
-          continue;
-        }
-      }
-
-      // No complete block at the head of the buffer.
-      final fenceStart = _buffer.indexOf('```');
-      final braceStart = _buffer.indexOf('{');
-      final firstStart = _firstPositive(fenceStart, braceStart);
-
-      if (firstStart == -1) {
-        // Pure prose; nothing JSON-like ahead.
-        _emitProse(_buffer);
-        _buffer = '';
+      final open = _openTag.firstMatch(_buffer);
+      if (open == null) {
+        // Prose. Hold back an open tag that has only partly arrived.
+        final held = done ? 0 : _partialOpenTagLength(_buffer);
+        _emitProse(_buffer.substring(0, _buffer.length - held));
+        _buffer = _buffer.substring(_buffer.length - held);
         break;
       }
 
-      if (firstStart > 0) {
-        _emitProse(_buffer.substring(0, firstStart));
-        _buffer = _buffer.substring(firstStart);
+      _emitProse(_buffer.substring(0, open.start));
+      _buffer = _buffer.substring(open.start);
+      final bodyStart = open.end - open.start;
+      final close = _findCloseTag(_buffer, bodyStart);
+      if (close != null) {
+        _emitBlock(
+          _buffer.substring(bodyStart, close.start),
+          _buffer.substring(0, close.end),
+        );
+        _buffer = _buffer.substring(close.end);
+        continue;
       }
 
-      // The buffer now starts with an incomplete block.
+      // The buffer now starts with an open block.
       if (done) {
-        final repaired = JsonRepair.tryRepair(_buffer);
+        final original = _buffer;
+        final repaired = JsonRepair.tryRepair(original.substring(bodyStart));
         if (repaired != null) {
           _emitJson(repaired);
-          _report(_buffer, repaired);
+          _report(original, repaired);
         } else {
-          _out.add(_buffer);
-          _drop(_buffer);
+          _out.add(original);
+          _drop(original);
         }
         _buffer = '';
       }
@@ -124,13 +119,12 @@ class _HealerState {
     }
   }
 
-  void _emitBlock(String inner, String original) {
-    final strict = JsonRepair.strict(inner);
-    if (strict != null) {
-      _emitJson(strict);
+  void _emitBlock(String body, String original) {
+    if (JsonRepair.strict(body) != null) {
+      _out.add(original);
       return;
     }
-    final repaired = JsonRepair.tryRepair(original);
+    final repaired = JsonRepair.tryRepair(body);
     if (repaired != null) {
       _emitJson(repaired);
       _report(original, repaired);
@@ -140,12 +134,8 @@ class _HealerState {
     }
   }
 
-  void _emitJson(String json) {
-    _out
-      ..add(json)
-      // A trailing newline acts as a JSONL separator for the downstream parser.
-      ..add('\n');
-  }
+  void _emitJson(String json) =>
+      _out.add('$_openTagText\n$json\n$_closeTagText');
 
   void _emitProse(String text) {
     if (text.isNotEmpty) _out.add(text);
@@ -161,9 +151,36 @@ class _HealerState {
     _onDrop?.call(original);
   }
 
-  static int _firstPositive(int a, int b) {
-    if (a == -1) return b;
-    if (b == -1) return a;
-    return a < b ? a : b;
+  /// The length of the end of [s] that could still grow into an open tag.
+  static int _partialOpenTagLength(String s) {
+    final start = s.lastIndexOf('<');
+    if (start == -1) return 0;
+    final tail = s.substring(start).toLowerCase();
+    return _openTagText.startsWith(tail) ? tail.length : 0;
+  }
+
+  /// The first close tag in [s] from [start] that is not inside a JSON
+  /// string, or null.
+  static Match? _findCloseTag(String s, int start) {
+    var inString = false;
+    var escaped = false;
+    for (var i = start; i < s.length; i++) {
+      final c = s[i];
+      if (inString) {
+        if (escaped) {
+          escaped = false;
+        } else if (c == r'\') {
+          escaped = true;
+        } else if (c == '"') {
+          inString = false;
+        }
+      } else if (c == '"') {
+        inString = true;
+      } else if (c == '<') {
+        final match = _closeTag.matchAsPrefix(s, i);
+        if (match != null) return match;
+      }
+    }
+    return null;
   }
 }

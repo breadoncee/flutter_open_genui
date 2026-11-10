@@ -13,6 +13,7 @@ messages) and streams `content_block_delta` / `text_delta` events.
 final adapter = AnthropicGenUiAdapter(
   apiKey: myKey,
   model: 'claude-sonnet-4-6',
+  catalog: catalog,
   systemPrompt: GenUiPrompt.fromCatalog(catalog),
 );
 ```
@@ -21,4 +22,4 @@ final adapter = AnthropicGenUiAdapter(
 named constructor argument.
 
 See the [repo README](https://github.com/breadoncee/flutter_open_genui) for the full
-setup. Built against `genui` 0.9.0. BSD-3-Clause.
+setup. Built against `a2ui_core` 0.6.0 and `a2ui_agent` 0.2.0. BSD-3-Clause.
