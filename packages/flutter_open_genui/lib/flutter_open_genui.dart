@@ -10,10 +10,13 @@
 /// `flutter_open_genui_openai`) to get a concrete adapter.
 library;
 
+export 'package:genai_primitives/genai_primitives.dart'
+    show ChatMessage, ChatMessageRole;
+
 export 'src/gen_ui_adapter.dart';
 export 'src/gen_ui_adapter_config.dart';
 export 'src/gen_ui_request.dart';
 export 'src/healing/a2ui_json_healer.dart';
 export 'src/healing/json_repair.dart';
 export 'src/logging.dart';
-export 'src/prompt.dart';
+export 'src/prompt.dart' show GenUiPrompt;

@@ -5,11 +5,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:a2ui_core/a2ui_core.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_open_genui/flutter_open_genui.dart';
 import 'package:flutter_open_genui_ollama/flutter_open_genui_ollama.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:genui/genui.dart' show ChatMessage;
 
 class _FakeSseAdapter implements HttpClientAdapter {
   _FakeSseAdapter(this.sseLines);
@@ -43,6 +43,7 @@ void main() {
       final fake = _FakeSseAdapter(['data: [DONE]']);
       final adapter = OllamaGenUiAdapter(
         model: 'llama3.1',
+        catalog: BasicCatalog.v0_9(),
         systemPrompt: 'SYSTEM',
         dio: Dio()..httpClientAdapter = fake,
       );
@@ -70,6 +71,7 @@ void main() {
       final fake = _FakeSseAdapter(['data: [DONE]']);
       final adapter = OllamaGenUiAdapter(
         model: 'qwen2.5',
+        catalog: BasicCatalog.v0_9(),
         systemPrompt: 's',
         baseUrl: 'http://ollama.local:8080/v1',
         dio: Dio()..httpClientAdapter = fake,

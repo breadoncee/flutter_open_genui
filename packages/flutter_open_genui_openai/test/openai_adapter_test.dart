@@ -5,11 +5,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:a2ui_core/a2ui_core.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_open_genui/flutter_open_genui.dart';
 import 'package:flutter_open_genui_openai/flutter_open_genui_openai.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:genui/genui.dart' show ChatMessage;
 
 /// A [HttpClientAdapter] that captures the outgoing request and replays a canned
 /// SSE body — no network, no live LLM (CI-safe).
@@ -45,6 +45,7 @@ OpenAiGenUiAdapter _buildAdapter(_FakeSseAdapter fake) {
   return OpenAiGenUiAdapter(
     apiKey: 'test-key',
     model: 'gpt-5.4',
+    catalog: BasicCatalog.v0_9(),
     systemPrompt: 'SYSTEM PROMPT',
     dio: dio,
   );
@@ -126,6 +127,7 @@ void main() {
       final adapter = OpenAiGenUiAdapter(
         apiKey: 'k',
         model: 'm',
+        catalog: BasicCatalog.v0_9(),
         systemPrompt: 's',
         baseUrl: 'https://proxy.example.com/v1/',
         dio: dio,

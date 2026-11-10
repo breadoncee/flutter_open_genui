@@ -2,12 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:a2ui_core/a2ui_core.dart';
 import 'package:dio/dio.dart';
 
 /// Configuration shared by every provider adapter.
 ///
 /// [systemPrompt] is the A2UI instruction block (build it with
-/// `GenUiPrompt.fromCatalog` or `PromptBuilder.chat(...).systemPromptJoined()`).
+/// `GenUiPrompt.fromCatalog` from the same [catalog]).
 /// Set [baseUrl] to point an adapter at a local server (Ollama), an
 /// OpenAI-compatible gateway (OpenRouter), or a backend proxy that holds the
 /// real key — the recommended production path. Inject [dio] in tests.
@@ -15,6 +16,7 @@ class GenUiAdapterConfig {
   /// Creates a configuration.
   const GenUiAdapterConfig({
     required this.model,
+    required this.catalog,
     required this.systemPrompt,
     this.apiKey,
     this.baseUrl,
@@ -26,6 +28,10 @@ class GenUiAdapterConfig {
 
   /// The provider model identifier (e.g. `gpt-5.4`, `claude-sonnet-4-6`).
   final String model;
+
+  /// The catalog the model builds surfaces from, such as an `a2ui_flutter`
+  /// `CatalogImplementation`. Replies are read and checked against it.
+  final CatalogApi catalog;
 
   /// The A2UI system instructions sent on every turn.
   final String systemPrompt;

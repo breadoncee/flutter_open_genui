@@ -6,11 +6,11 @@ import 'dart:convert';
 
 /// Repairs the common ways LLMs break the JSON they stream for A2UI messages.
 ///
-/// Google's `genui` parser already buffers split chunks, strips Markdown code
-/// fences, and waits for balanced braces. What it does *not* do is *repair* a
-/// block that fails [jsonDecode] — it gives up and emits the broken block as
-/// chat text, so the surface silently fails to render. This class fills that
-/// gap: given a candidate JSON block it fixes the malformations real models
+/// The `a2ui_agent` parser already buffers split chunks, strips Markdown code
+/// fences, and reads past trailing commas. What it does *not* do is *repair*
+/// any other mistake in a block — it rejects the block, so the surface fails
+/// to render. This class fills that gap: given a candidate JSON block it fixes
+/// the malformations real models
 /// produce (trailing commas, single quotes, comments, and truncation from a
 /// `maxTokens` cutoff) and returns valid, compact JSON.
 abstract final class JsonRepair {

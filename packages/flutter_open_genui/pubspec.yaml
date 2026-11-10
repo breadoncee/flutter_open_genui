@@ -22,9 +22,12 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
-  # The official Flutter GenUI SDK. Pinned to the verified alpha line; bump
-  # deliberately because the API changes between alphas.
-  genui: ^0.9.0
+  # The A2UI Dart SDKs: a2ui_core for the protocol types, a2ui_agent for the
+  # system prompt and for reading the model's streamed replies.
+  a2ui_agent: ^0.2.0
+  a2ui_core: ^0.6.0
+  # ChatMessage and ChatMessageRole, which genui used to re-export.
+  genai_primitives: ^0.2.3
   # Raw HTTP/SSE client shared by provider adapters (no community LLM SDKs).
   dio: ^5.0.0
   meta: ^1.15.0

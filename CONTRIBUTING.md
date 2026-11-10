@@ -24,12 +24,12 @@ CI stays deterministic and free.
 
 ## Add a provider in 4 steps
 
-The base class does the hard parts (transport wiring, history, JSON healing). A
+The base class does the hard parts (A2UI parsing, history, JSON healing). A
 new provider usually only implements `streamCompletion`.
 
 1. **Create a package** `packages/flutter_open_genui_<provider>/` and add it to
    the `workspace:` list in the root `pubspec.yaml`. Depend on
-   `flutter_open_genui`, `genui`, and `dio`.
+   `flutter_open_genui`, `a2ui_core`, and `dio`.
 
 2. **Extend `GenUiAdapter`** (or `OpenAiCompatibleAdapter` from the OpenAI
    package if the provider speaks the OpenAI wire format — OpenRouter and
@@ -60,5 +60,6 @@ Together, DeepSeek, Cerebras.
 
 ## Pull requests
 
-Keep PRs focused (one provider or one fix). Include tests. Note the `genui`
-version you built against — it is alpha and the API moves.
+Keep PRs focused (one provider or one fix). Include tests. Note the `a2ui_core`
+and `a2ui_agent` versions you built against — they are pre-1.0 and the API
+moves.

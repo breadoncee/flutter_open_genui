@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-import 'package:genui/genui.dart' show ChatMessage;
+import 'package:genai_primitives/genai_primitives.dart' show ChatMessage;
 
 /// The assembled request a [GenUiAdapter] hands to a provider's streaming API.
 ///
@@ -12,7 +12,7 @@ class GenUiRequest {
   /// Creates a request.
   const GenUiRequest({required this.systemPrompt, required this.history});
 
-  /// The A2UI system instructions (typically from `PromptBuilder.chat`).
+  /// The A2UI system instructions (typically from `GenUiPrompt.fromCatalog`).
   final String systemPrompt;
 
   /// The full conversation so far, oldest first. The last entry is the message

@@ -5,11 +5,11 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'package:a2ui_core/a2ui_core.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_open_genui/flutter_open_genui.dart';
 import 'package:flutter_open_genui_anthropic/flutter_open_genui_anthropic.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:genui/genui.dart' show ChatMessage;
 
 class _FakeSseAdapter implements HttpClientAdapter {
   _FakeSseAdapter(this.sseLines);
@@ -67,6 +67,7 @@ void main() {
       final adapter = AnthropicGenUiAdapter(
         apiKey: 'k',
         model: 'claude-sonnet-4-6',
+        catalog: BasicCatalog.v0_9(),
         systemPrompt: 'SYSTEM',
         dio: Dio()..httpClientAdapter = fake,
       );
@@ -99,6 +100,7 @@ void main() {
       final adapter = AnthropicGenUiAdapter(
         apiKey: 'k',
         model: 'claude-sonnet-4-6',
+        catalog: BasicCatalog.v0_9(),
         systemPrompt: 's',
         dio: Dio()..httpClientAdapter = fake,
       );
@@ -116,6 +118,7 @@ void main() {
       final adapter = AnthropicGenUiAdapter(
         apiKey: 'sk-ant-x',
         model: 'claude-sonnet-4-6',
+        catalog: BasicCatalog.v0_9(),
         systemPrompt: 'SYSTEM',
         maxTokens: 2048,
         dio: Dio()..httpClientAdapter = fake,

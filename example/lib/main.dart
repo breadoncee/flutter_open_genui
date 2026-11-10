@@ -4,13 +4,17 @@
 
 import 'dart:async';
 
+import 'package:a2ui_core/a2ui_core.dart';
+import 'package:a2ui_flutter/a2ui_flutter.dart';
+import 'package:a2ui_flutter/v0_9/basic_catalog.dart' as v0_9;
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:flutter_open_genui/flutter_open_genui.dart';
 import 'package:flutter_open_genui_anthropic/flutter_open_genui_anthropic.dart';
 import 'package:flutter_open_genui_ollama/flutter_open_genui_ollama.dart';
 import 'package:flutter_open_genui_openai/flutter_open_genui_openai.dart';
 import 'package:flutter_open_genui_openrouter/flutter_open_genui_openrouter.dart';
-import 'package:genui/genui.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 /// Provide keys at run time:
 /// `fvm flutter run --dart-define=OPENAI_API_KEY=sk-... \`
@@ -24,7 +28,10 @@ void main() => runApp(const ExampleApp());
 
 /// The widget catalog the model is allowed to use. Same catalog is rendered
 /// regardless of which provider is generating it — the whole point.
-final Catalog appCatalog = BasicCatalogItems.asCatalog();
+final CatalogImplementation appCatalog = v0_9.basicCatalog(openUrl: launchUrl);
+
+/// The A2UI protocol version the catalog and the model speak.
+final String _version = A2uiProtocolVersion.v0_9.jsonValue;
 
 class ExampleApp extends StatelessWidget {
   const ExampleApp({super.key});
@@ -59,32 +66,62 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  late SurfaceController _controller;
+  late final MessageProcessor<ComponentImplementation> _processor;
+  late final List<Subscription> _processorSubscriptions;
   late GenUiAdapter _adapter;
-  late Conversation _conversation;
-  StreamSubscription<ConversationEvent>? _events;
+  final List<StreamSubscription<Object?>> _adapterSubscriptions = [];
 
   Provider _provider = Provider.openai;
-  final List<String> _surfaceIds = <String>[];
+  final List<SurfaceModel<ComponentImplementation>> _surfaces = [];
   final TextEditingController _input = TextEditingController();
   bool _busy = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = SurfaceController(catalogs: [appCatalog]);
+    _processor = MessageProcessor<ComponentImplementation>(
+      catalogs: [appCatalog],
+      // A surface streams in over several messages, which the strict checks
+      // would reject.
+      validationConfig: ValidationConfig.relaxed,
+      reportErrorsOnly: true,
+    );
+    _processorSubscriptions = [
+      _processor.model.onSurfaceCreated.subscribe(
+        (surface) => setState(() => _surfaces.add(surface)),
+      ),
+      _processor.model.onSurfaceDeleted.subscribe(
+        (surfaceId) =>
+            setState(() => _surfaces.removeWhere((s) => s.id == surfaceId)),
+      ),
+      // Actions and errors go back to the model as the next turn, as genui's
+      // Conversation sent them.
+      _processor.model.onAction.subscribe(
+        (action) => _sendTurn(
+          () => _adapter.sendInteraction(
+            ActionMessage(version: _version, action: action),
+          ),
+        ),
+      ),
+      _processor.model.onError.subscribe(
+        (error) => _sendTurn(
+          () => _adapter.sendInteraction(
+            ErrorMessage(version: _version, error: error),
+          ),
+        ),
+      ),
+    ];
     _wireProvider(_provider);
   }
 
-  /// (Re)builds the adapter + conversation for the chosen [provider], reusing
-  /// the same [_controller] so existing surfaces keep rendering.
+  /// (Re)builds the adapter for the chosen [provider], reusing the same
+  /// [_processor] so existing surfaces keep rendering.
   void _wireProvider(Provider provider) {
-    _events?.cancel();
-    if (_provider != provider) {
-      // ignore: unawaited_futures
-      Future<void>.sync(_conversation.dispose);
-      _adapter.dispose();
+    for (final subscription in _adapterSubscriptions) {
+      unawaited(subscription.cancel());
     }
+    _adapterSubscriptions.clear();
+    if (_provider != provider) _adapter.dispose();
     _provider = provider;
 
     final systemPrompt = GenUiPrompt.fromCatalog(appCatalog);
@@ -92,11 +129,13 @@ class _ChatPageState extends State<ChatPage> {
       Provider.openai => OpenAiGenUiAdapter(
         apiKey: _openAiKey,
         model: provider.defaultModel,
+        catalog: appCatalog,
         systemPrompt: systemPrompt,
       ),
       Provider.openrouter => OpenRouterGenUiAdapter(
         apiKey: _openRouterKey,
         model: provider.defaultModel,
+        catalog: appCatalog,
         systemPrompt: systemPrompt,
         referer: 'https://github.com/breadoncee/flutter_open_genui',
         title: 'flutter_open_genui example',
@@ -104,18 +143,36 @@ class _ChatPageState extends State<ChatPage> {
       Provider.anthropic => AnthropicGenUiAdapter(
         apiKey: _anthropicKey,
         model: provider.defaultModel,
+        catalog: appCatalog,
         systemPrompt: systemPrompt,
       ),
       Provider.ollama => OllamaGenUiAdapter(
         model: provider.defaultModel,
+        catalog: appCatalog,
         systemPrompt: systemPrompt,
       ),
     };
-    _conversation = Conversation(
-      controller: _controller,
-      transport: _adapter.transport,
-    );
-    _events = _conversation.events.listen(_onEvent);
+    _adapterSubscriptions.addAll([
+      _adapter.incomingText.listen((_) => _onContent()),
+      _adapter.incomingMessages.listen(
+        (message) {
+          _onContent();
+          _processor.processMessages(AgentToRendererMessagePayload.of(message));
+        },
+        // A block the adapter rejected goes back to the model too, as genui's
+        // SurfaceController reported messages that failed validation.
+        onError: (Object error) {
+          _onContent();
+          if (error is A2uiError) {
+            _sendTurn(
+              () => _adapter.sendInteraction(MessageErrorMapper.map(error)),
+            );
+          } else {
+            _showError('$error');
+          }
+        },
+      ),
+    ]);
   }
 
   bool get _hasKeyForProvider => switch (_provider) {
@@ -125,19 +182,19 @@ class _ChatPageState extends State<ChatPage> {
     Provider.ollama => true, // no key needed
   };
 
-  void _onEvent(ConversationEvent event) {
-    switch (event) {
-      case ConversationSurfaceAdded(:final surfaceId):
-        setState(() => _surfaceIds.add(surfaceId));
-      case ConversationSurfaceRemoved(:final surfaceId):
-        setState(() => _surfaceIds.remove(surfaceId));
-      case ConversationWaiting():
-        setState(() => _busy = true);
-      case ConversationError(:final error):
-        setState(() => _busy = false);
-        _showError('$error');
-      case ConversationComponentsUpdated() || ConversationContentReceived():
-        setState(() => _busy = false);
+  /// Hides the progress bar once the model's reply starts to arrive.
+  void _onContent() {
+    if (_busy) setState(() => _busy = false);
+  }
+
+  /// Shows the progress bar and runs [send], showing any error it throws.
+  Future<void> _sendTurn(Future<void> Function() send) async {
+    setState(() => _busy = true);
+    try {
+      await send();
+    } catch (error) {
+      if (mounted) setState(() => _busy = false);
+      _showError('$error');
     }
   }
 
@@ -145,7 +202,7 @@ class _ChatPageState extends State<ChatPage> {
     final text = _input.text.trim();
     if (text.isEmpty) return;
     _input.clear();
-    await _conversation.sendRequest(ChatMessage.user(text));
+    await _sendTurn(() => _adapter.sendRequest(ChatMessage.user(text)));
   }
 
   void _showError(String message) {
@@ -157,10 +214,14 @@ class _ChatPageState extends State<ChatPage> {
 
   @override
   void dispose() {
-    _events?.cancel();
-    _conversation.dispose();
+    for (final subscription in _adapterSubscriptions) {
+      unawaited(subscription.cancel());
+    }
     _adapter.dispose();
-    _controller.dispose();
+    for (final subscription in _processorSubscriptions) {
+      subscription.unsubscribe();
+    }
+    _processor.dispose();
     _input.dispose();
     super.dispose();
   }
@@ -195,7 +256,7 @@ class _ChatPageState extends State<ChatPage> {
           if (!_hasKeyForProvider) _MissingKeyBanner(provider: _provider),
           if (_busy) const LinearProgressIndicator(),
           Expanded(
-            child: _surfaceIds.isEmpty
+            child: _surfaces.isEmpty
                 ? Center(
                     child: Text(
                       'Ask for a UI to get started '
@@ -205,13 +266,18 @@ class _ChatPageState extends State<ChatPage> {
                 : ListView(
                     padding: const EdgeInsets.all(16),
                     children: [
-                      for (final id in _surfaceIds)
+                      for (final surface in _surfaces)
                         Card(
                           margin: const EdgeInsets.only(bottom: 12),
                           child: Padding(
                             padding: const EdgeInsets.all(12),
-                            child: Surface(
-                              surfaceContext: _controller.contextFor(id),
+                            // Text components render Markdown, as genui's did.
+                            child: v0_9.A2uiMarkdown(
+                              builder: _buildMarkdown,
+                              child: A2uiSurface(
+                                key: ObjectKey(surface),
+                                surface: surface,
+                              ),
                             ),
                           ),
                         ),
@@ -245,6 +311,14 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 }
+
+Widget _buildMarkdown(BuildContext context, String markdown, TextStyle style) =>
+    MarkdownBody(
+      data: markdown,
+      styleSheet: MarkdownStyleSheet.fromTheme(
+        Theme.of(context),
+      ).copyWith(p: style),
+    );
 
 class _MissingKeyBanner extends StatelessWidget {
   const _MissingKeyBanner({required this.provider});

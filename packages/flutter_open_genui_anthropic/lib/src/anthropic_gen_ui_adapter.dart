@@ -4,9 +4,9 @@
 
 import 'dart:convert';
 
+import 'package:a2ui_core/a2ui_core.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_open_genui/flutter_open_genui.dart';
-import 'package:genui/genui.dart' show ChatMessageRole;
 
 /// Drives Flutter GenUI with Anthropic's Claude Messages API.
 ///
@@ -24,6 +24,7 @@ import 'package:genui/genui.dart' show ChatMessageRole;
 /// final adapter = AnthropicGenUiAdapter(
 ///   apiKey: myKey,
 ///   model: 'claude-sonnet-4-6',
+///   catalog: catalog,
 ///   systemPrompt: GenUiPrompt.fromCatalog(catalog),
 /// );
 /// ```
@@ -32,6 +33,7 @@ class AnthropicGenUiAdapter extends GenUiAdapter {
   AnthropicGenUiAdapter({
     required String apiKey,
     required String model,
+    required CatalogApi catalog,
     required String systemPrompt,
     String baseUrl = 'https://api.anthropic.com',
     String anthropicVersion = '2023-06-01',
@@ -43,6 +45,7 @@ class AnthropicGenUiAdapter extends GenUiAdapter {
   }) : super(
          config: GenUiAdapterConfig(
            model: model,
+           catalog: catalog,
            systemPrompt: systemPrompt,
            apiKey: apiKey,
            baseUrl: baseUrl,
